@@ -20,7 +20,7 @@
 #define ERROR_ADDRESS_NOT_FOUND  (-1)
 #define ERROR_TIMEOUT      		 (-2)
 #define ERROR_NANK_RECEIVED      (-3)
-
+#define ERRROR_TIMEOUT1
 
 
 void I2C_Init(I2C_TypeDef * i2c) ;
