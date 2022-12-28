@@ -1,0 +1,6 @@
+C:/Users/Lenovo/Desktop/Uni/Workspace/WiSe2223_GruppeK3_s_Projektaufgabe_Digitalihr/app/inc/core_cm4.h:1816:22:__NVIC_SetPriority	16	static
+../app/src/main.c:35:5:main	24	static
+../app/src/main.c:107:6:systick_enable	8	static
+../app/src/main.c:118:6:SysTick_Handler	4	static
+../app/src/main.c:123:6:delay_ms	24	static
+../app/src/main.c:130:10:get_mtick	4	static
