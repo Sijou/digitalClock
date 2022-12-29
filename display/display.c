@@ -1,4 +1,4 @@
-
+//ok
 #include "stm32f3xx.h"
 #include "display.h"
 #include "fonts.h"
