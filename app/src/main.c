@@ -8,12 +8,13 @@
 
 /***
  *
- *  ADD the fourth column to keypad driver
+ *  ADD the fourth column to keypad driver++++++++++++++++++++
  *
- *  add Write more that 255 byte (LCD)
+ *  //add Write more that 255 byte (LCD)+++++++++++
  *
- *  LCD  ,( UART )
+ *  // LCD +++++++++++++++++++++
  *
+ *  //
  */
 #include "stm32f303xe.h"
 #include "i2c.h"
@@ -21,9 +22,18 @@
 #include "main.h"
 #include "keypad.h"
 
+
+#include "display.h"
+#include "fonts.h"
+#include "logo.h"
+
 volatile uint32_t mtick ;
 
-#define I2C_WRITE_READ_BM
+
+//#define BLINK
+//#define I2C_WRITE_READ_BM
+
+
 uint8_t data ;
 uint32_t SystemCoreClock_ = 8000000; //8 Mhz
 
@@ -35,7 +45,7 @@ int error ;
 int main()
 {
 
-	while ((RCC->CR & 2) == 0); //wait until HSI is Ready
+	while ((RCC->CR & 2) == 0);  //wait until HSI is Ready
 
 	systick_enable() ;
 
@@ -50,12 +60,12 @@ int main()
 	gpio_set_pinState(GPIOA , 5 , LOW) ;
 
 	//SYSCFG->CFGR1 |= (1<<16) |(1<<17) ;// set PB6 and PB7 I2C mode
-    #ifdef I2C_WRITE_READ_BM
+#ifdef I2C_WRITE_READ_BM
 
 	 I2C_Init(I2C2) ;
 
 
-	// data = search_address(I2C2) ;
+	 //data = search_address(I2C2) ;
 
 	 uint8_t buff[2] ;
 	 buff[0] = 0x09 ;
@@ -67,39 +77,43 @@ int main()
 
 	 I2C_Read(I2C2 ,0x57 , buff , 2) ;
 
-
      //128*64
 #endif
 
+	 I2C_Init(I2C1) ;
+
+	 Display_Init();	//Configure Display
+
 	 keypad_init(GPIOC , 0) ;
-//	 uint16_t porte = 0;
-//	 uint8_t  eidr  = 0;
-//	 porte = GPIOC->IDR ;
-//
-//	 eidr = (porte >> 0) & 0x7f ;
+
 
 	while(1)
 	{
+		//Example: print a picture on screen
+		Display_Fill(Display_COLOR_WHITE);	//the entire Display is white (written to RAM)
+		Display_DrawBitmap(0, 0, helix, 128, 64, Display_COLOR_BLACK);	//data of picture into RAM	(available pictures: helix & looping)
+		Display_UpdateScreen();		//all Data written to RAM of Display is printed on display
 
 		char c = keypad_get_pressedkey() ;
 
-
-
-
-//		uint16_t key = (GPIOC->IDR )&0x007f ;
-//		key = (key >> 4 ) & 0x07;
-//		if(key != 7)
 		if(c != 0)
 		{
 			gpio_set_pinState(GPIOA , 5 , HIGH) ;
 		}
-//		gpio_set_pinState(GPIOA , 5 , HIGH) ;
-//
-//		delay_ms(500) ;
-//
-//		gpio_set_pinState(GPIOA , 5 , LOW) ;
-//
-//		delay_ms(500) ;
+
+
+#ifdef BLINK
+		gpio_set_pinState(GPIOA , 5 , HIGH) ;
+
+		delay_ms(500) ;
+
+		gpio_set_pinState(GPIOA , 5 , LOW) ;
+
+		delay_ms(500) ;
+#endif /*BLINK*/
+
+
+
 	}
 }
 
@@ -132,33 +146,3 @@ uint32_t get_mtick()
   return mtick;
 }
 
-
-/**
- *
- * Exemple transmmiting 2 byte
- *
- * I2C1->CR2  = ((data << 1) << I2C_CR2_SADD_Pos) ;  // set the slave address
-	 I2C1->CR2 |=   (2 << I2C_CR2_NBYTES_Pos);		   // set the number of bytes to transmitted
-	 I2C1->CR2 |= I2C_CR2_START; 					   // generate the start condition
-	 while ((I2C1->ISR & I2C_ISR_TXIS) == 0)  // wait for ASK
-	 {
-		  if (I2C1->ISR & I2C_ISR_NACKF)	      // No ASK is received (error)
-			  while(1) ;
-	 }
-
-
-	 I2C1->TXDR = 0x09;
-	 while ((I2C1->ISR & I2C_ISR_TXIS) == 0) {
-		 if (I2C1->ISR & I2C_ISR_NACKF)
-			 while(1) ;
-	 }
-
-
-	 I2C1->TXDR = 0x09;
-	 	 while ((I2C1->ISR & I2C_ISR_TC) == 0) {
-	 		 if (I2C1->ISR & I2C_ISR_NACKF)
-	 			 while(1) ;
-	 	 }
-
-	 I2C1->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
- */

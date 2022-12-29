@@ -18,13 +18,13 @@
 #include "gpio.h"
 #include "main.h"
 
-char keys[4][3] = {{'1','2','3' } ,{'4','5','6'} ,{'7','8','9'},{'*','0','#'} } ;
+char keys[4][4] = {{'1','2','3' ,'A'} ,{'4','5','6','B'} ,{'7','8','9','C'},{'*','0','#','D'} } ;
 GPIO_TypeDef * keypad_port ;
 int start_pin ;
 keypad_states state = State_free ;
 
 
-#define  DEFAULT_KEYPAD_PORT_INP    0x70
+#define  DEFAULT_KEYPAD_PORT_INP    0xf0
 
 
 
@@ -46,13 +46,14 @@ void keypad_init(GPIO_TypeDef * port , int s_pin)
 static void keypad_inverse_pin_direction( GPIO_TypeDef * port , int s_pin)
 {
 	reset_io(port) ;
-	gpio_config_pin(port ,s_pin++  ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R1
-	gpio_config_pin(port ,s_pin++  ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R2
-	gpio_config_pin(port ,s_pin++  ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R3
-	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R4
-	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C1
-	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C2
-	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C3
+	gpio_config_pin(port ,s_pin++  ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R1     0
+	gpio_config_pin(port ,s_pin++  ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R2     1
+	gpio_config_pin(port ,s_pin++  ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R3     0
+	gpio_config_pin(port ,s_pin++ ,GPIO_IN  , GPIO_SPEED_LOW , GPIO_PULL_DOWN,GPIO_PUSHPULL) ;//R4     0
+	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C1     1
+	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C2     1
+	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C3     1
+	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;  //C4     1
 
 }
 
@@ -65,7 +66,8 @@ static void keypad_config_key_direction( GPIO_TypeDef * port , int s_pin)
 	gpio_config_pin(port ,s_pin++ ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//R4   0
 	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C1  1
 	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C2  1
-	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C3  1
+	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C3  0
+	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C4  1
 }
 
 /**
@@ -80,12 +82,21 @@ char keypad_get_pressedkey()
 	char ret = 0 ;
 
 	porte = GPIOC->IDR ;
-
+  // 000 000 0 00 000 0000
+	       //  7 >>
+	/**
+	 *
+	 * 0b 0111 0100 0000 1111   //porc
+	 * 0b 0000 0111 0100 0000   //7
+	 *    &<<
+	 *    0000 0000 0111 1111
+	 *
+	 */
 	switch(state)
 	{
 		case State_free ://initial
-			{
-				eidr = (porte >> start_pin) & 0x7f ;
+			{										//0b00100011111111
+				eidr = (porte >> start_pin) ;//  & 0x0000000007f ;  //
 
 				if(eidr != DEFAULT_KEYPAD_PORT_INP)
 				{
@@ -108,9 +119,16 @@ char keypad_get_pressedkey()
 
 					int col = 0 ;
 
-					for(col = 0 ; col <3 ; col++)
+					for(col = 0 ; col <4 ; col++)
 					{
-						if(   (((eidr & 0x70) >> 4) &  (1<<col)) != 0 )
+						/*
+						 * 0100 0001
+						 * 0000 1111
+						 * 0000 0001 &
+						 * 0000 0001
+						 * 0000 0001
+						 */
+						if(   (((eidr & 0xf0) >> 4) &  (1<<col)) != 0 )
 						{
 							break ;
 						}
@@ -127,9 +145,10 @@ char keypad_get_pressedkey()
 					}
 
 					//reset the direction
-					keypad_config_key_direction(keypad_port ,start_pin ) ;
 
 					ret = keys[row][col] ;
+
+					keypad_config_key_direction(keypad_port ,start_pin ) ;
 
 					state = State_key_pressed ;
 

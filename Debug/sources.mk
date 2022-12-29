@@ -23,6 +23,7 @@ C_DEPS :=
 SUBDIRS := \
 app/src \
 app \
+display \
 driver/src \
 keypad \
 
