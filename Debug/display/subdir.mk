@@ -5,13 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../display/display.c 
+../display/display.c \
+../display/fonts.c 
 
 OBJS += \
-./display/display.o 
+./display/display.o \
+./display/fonts.o 
 
 C_DEPS += \
-./display/display.d 
+./display/display.d \
+./display/fonts.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +24,7 @@ display/%.o display/%.su: ../display/%.c display/subdir.mk
 clean: clean-display
 
 clean-display:
-	-$(RM) ./display/display.d ./display/display.o ./display/display.su
+	-$(RM) ./display/display.d ./display/display.o ./display/display.su ./display/fonts.d ./display/fonts.o ./display/fonts.su
 
 .PHONY: clean-display
 

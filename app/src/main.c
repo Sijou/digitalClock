@@ -8,11 +8,7 @@
 
 /***
  *
- *  ADD the fourth column to keypad driver++++++++++++++++++++
- *
- *  //add Write more that 255 byte (LCD)+++++++++++
- *
- *  // LCD +++++++++++++++++++++
+
  *
  *  //
  */
@@ -41,7 +37,9 @@ uint32_t SystemCoreClock_ = 8000000; //8 Mhz
 uint8_t data = 0 ;
 uint8_t i = 0 ;
 int error ;
-
+OLED_t lcd1 ;
+OLED_t lcd2 ;
+OLED_t lcd3 ;
 int main()
 {
 
@@ -80,25 +78,34 @@ int main()
      //128*64
 #endif
 
-	 I2C_Init(I2C1) ;
+	 lcd1.dev = I2C1 ;
+	 lcd2.dev = I2C2 ;
+	 lcd3.dev = I2C3 ;
 
-	 Display_Init();	//Configure Display
+	 //I2C_Init(I2C1) ;
+	 I2C_Init(I2C2) ;
+	 I2C_Init(I2C3) ;
+
+	 Display_Init(&lcd3);	//Configure Display
+	 Display_Init(&lcd2);	//Configure Display
 
 	 keypad_init(GPIOC , 0) ;
-
-
+	 //Example: print a picture on screen
+	Display_Fill(&lcd3, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
+	Display_DrawBitmap(&lcd3 ,0, 0, looping, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+	Display_UpdateScreen(&lcd3);
+	Display_Fill(&lcd2, Display_COLOR_WHITE );	//the entire Display is white (written to RAM)
+	Display_UpdateScreen(&lcd2);
 	while(1)
 	{
-		//Example: print a picture on screen
-		Display_Fill(Display_COLOR_WHITE);	//the entire Display is white (written to RAM)
-		Display_DrawBitmap(0, 0, helix, 128, 64, Display_COLOR_BLACK);	//data of picture into RAM	(available pictures: helix & looping)
-		Display_UpdateScreen();		//all Data written to RAM of Display is printed on display
 
 		char c = keypad_get_pressedkey() ;
 
 		if(c != 0)
 		{
 			gpio_set_pinState(GPIOA , 5 , HIGH) ;
+			Display_Putc(&lcd2 , c , &Font_7x10 , Display_COLOR_BLACK) ;
+			Display_UpdateScreen(&lcd2);
 		}
 
 
@@ -112,6 +119,32 @@ int main()
 		delay_ms(500) ;
 #endif /*BLINK*/
 
+
+		/** width 7* height 10
+		 * 0x3800, 0x4400, 0x4000, 0x3000, 0x0800, 0x0400, 0x4400, 0x3800, 0x0000, 0x0000,  // S
+		 *
+		 *   0 0 1 1 1 0 0 0
+		 *   0 1 0 0 0 1 0 0
+		 *   0 1 0 0 0 0 0 0
+		 *   0 0 1 1 0 0 0 0
+		 *   0 0 0 0 1 0 0 0
+		 *   0 0 0 0 0 1 0 0
+		 *   0 1 0 0 0 1 0 0
+		 *   0 0 1 1 1 0 0 0
+		 *   0 0 0 0 0 0 0 0
+		 *   0 0 0 0 0 0 0 0
+		 *
+		 * 	 0x0000, 0x0000, 0x8800, 0x8800, 0x8800, 0x5000, 0x2000, 0x0000,  // v
+		 *
+		 * 	 0 0 0 0 0 0 0 0
+		 * 	 0 0 0 0 0 0 0 0
+		 * 	 1 0 0 0 1 0 0 0
+		 * 	 1 0 0 0 1 0 0 0
+		 * 	 1 0 0 0 1 0 0 0
+		 *   0 1 0 1 0 0 0 0
+		 *   0 0 1 0 0 0 0 0
+		 * 	 0 0 0 0 0 0 0 0
+		 */
 
 
 	}

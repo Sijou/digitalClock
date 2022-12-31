@@ -1,5 +1,5 @@
 /*
- * gpio.h
+ * gpio.c
  *
  *  Created on: 17 déc. 2022
  *      Author: medali

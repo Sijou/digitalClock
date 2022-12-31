@@ -3,7 +3,7 @@
 
 #include "string.h"
 
-
+#define SSD1306_INCLUDE_FONT_7x10
 typedef struct {
 	uint8_t FontWidth;    // Font width in pixels
 	uint8_t FontHeight;   // Font height in pixels
