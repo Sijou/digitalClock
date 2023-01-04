@@ -24,12 +24,16 @@
 #include "logo.h"
 #include "alarm_logo.h"
 #include "rtc.h"
+#include "test1.h"
+#include "test2.h"
+#include "test3.h"
+#include "test4.h"
 
 volatile uint32_t mtick ;
 
 
 //#define BLINK
-//#define I2C_WRITE_READ_BM
+#define I2C_WRITE_READ_BM
 
 
 uint8_t data ;
@@ -46,7 +50,7 @@ OLED_t lcd3 ;
 int main()
 {
 
-	while ((RCC->CR & 2) == 0);  //wait until HSI is Ready
+  	while ((RCC->CR & 2) == 0);  //wait until HSI is Ready
 
 	systick_enable() ;
 
@@ -89,32 +93,34 @@ int main()
 	 I2C_Init(I2C2) ;
 	 I2C_Init(I2C3) ;
 
-	 rtc_init(I2C1) ;
+	 //rtc_init(I2C1) ;
 
-	 rtc_I2C_TimeOffset() ;
+	// rtc_I2C_TimeOffset() ;
 
 	 Display_Init(&lcd3);	//Configure Display
 	 Display_Init(&lcd2);	//Configure Display
 	 Display_Init(&lcd1);	//Configure Display
 	 keypad_init(GPIOC , 0) ;
 	 //Example: print a picture on screen
-		Display_Fill(&lcd3, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
-		Display_DrawBitmap(&lcd3 ,0, 0, looping, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+		Display_Fill(&lcd3, Display_COLOR_BLACK);	//the entire Display is white (written to RAM)
+		Display_DrawBitmap(&lcd3 ,0, 0, horse_image, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
 		Display_UpdateScreen(&lcd3);
-	Display_Fill(&lcd2, Display_COLOR_WHITE );	//the entire Display is white (written to RAM)
-	Display_UpdateScreen(&lcd2);
-	Display_Fill(&lcd1, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
-	Display_DrawBitmap(&lcd1 ,0, 0, alarm_logo, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
-	Display_UpdateScreen(&lcd1);
 
-	uint8_t in_buffer[20]  ;
-	uint8_t out_buffer[20] ;
+		Display_Fill(&lcd2, Display_COLOR_WHITE );	//the entire Display is white (written to RAM)
+	    Display_UpdateScreen(&lcd2);
+
+	    Display_Fill(&lcd1, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
+	    Display_DrawBitmap(&lcd1 ,0, 0, alarm_logo, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+	    Display_UpdateScreen(&lcd1);
+
+	//uint8_t in_buffer[20]  ;
+	//uint8_t out_buffer[20] ;
 
 
-	rtc_I2c_ReadAll(in_buffer);
-	rtc_I2C_Calculate(in_buffer , out_buffer);
-	Display_printTime(&lcd3 , out_buffer,&Font_7x10 );
-	Display_UpdateScreen(&lcd3);
+	//rtc_I2c_ReadAll(in_buffer);
+	//rtc_I2C_Calculate(in_buffer , out_buffer);
+	//Display_printTime(&lcd3 , out_buffer,&Font_7x10 );
+	//Display_UpdateScreen(&lcd3);
 	while(1)
 	{
 

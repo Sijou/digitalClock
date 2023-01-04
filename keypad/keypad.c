@@ -55,14 +55,14 @@ static void keypad_config_key_direction( GPIO_TypeDef * port , int s_pin)
 {
 	reset_io(port) ;
 	//configure the pins as Output with no pull
-	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//c1  1
-	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//c2  0
-	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//c3  0
-	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//c4  0
+	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//r1  1
+	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//r2  0
+	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//r3  0
+	gpio_config_pin(port ,s_pin++  ,GPIO_OUT , GPIO_SPEED_LOW , GPIO_NO_PULL,GPIO_PUSHPULL) ;//r4  0
 	//configure the pins as Intput with pull-up
-	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //r1  1
-	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //r2  0
-	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //r3  1
+	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C1  1
+	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C2  0
+	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C3  1
 	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C4  1
 }
 
@@ -102,7 +102,7 @@ char keypad_get_pressedkey()
 	{
 		case State_free ://initial
 			{
-				//15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+				//15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 gpioc
 				// x x  x  x  x  x                  x x
 				eidr = (porte >> start_pin) ;//  & 0xff ; // get the state od the keypad pins
                  /*
@@ -111,7 +111,7 @@ char keypad_get_pressedkey()
                   * and adding 0xff is then no longer necessary
                   */
 				if(eidr != DEFAULT_KEYPAD_PORT_INP)       // if now the value is different than the DEFAULT_KEYPAD_PORT_INP 0xf0
-				{
+				{ //   &0Xf0
 					ch = ~eidr;                           // set the inverse of eidr in ch
 					ch = ch & DEFAULT_KEYPAD_PORT_INP;    // with the addition of 0xf0 we get 1 in the changed bit position
                                                             // we get the used row
@@ -128,7 +128,7 @@ char keypad_get_pressedkey()
 
 					porte = keypad_port->IDR ;//get the state of input port
 
-					eidr = (porte >> start_pin) & 0xff ; //get the state of keypad pins
+					eidr = (porte >> start_pin) ;//& 0xff ; //get the state of keypad pins
 					//port_input = eidr ;
 
 					int col = 0 ;
