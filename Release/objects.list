@@ -1,0 +1,7 @@
+"./app/src/main.o"
+"./app/statup_stm32f303re.o"
+"./display/display.o"
+"./display/fonts.o"
+"./driver/src/gpio.o"
+"./driver/src/i2c.o"
+"./keypad/keypad.o"

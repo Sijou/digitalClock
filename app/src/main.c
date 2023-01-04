@@ -22,6 +22,8 @@
 #include "display.h"
 #include "fonts.h"
 #include "logo.h"
+#include "alarm_logo.h"
+#include "rtc.h"
 
 volatile uint32_t mtick ;
 
@@ -40,6 +42,7 @@ int error ;
 OLED_t lcd1 ;
 OLED_t lcd2 ;
 OLED_t lcd3 ;
+
 int main()
 {
 
@@ -60,20 +63,20 @@ int main()
 	//SYSCFG->CFGR1 |= (1<<16) |(1<<17) ;// set PB6 and PB7 I2C mode
 #ifdef I2C_WRITE_READ_BM
 
-	 I2C_Init(I2C2) ;
+	 uint8_t buff[3] ;
+
+	 I2C_Init(I2C1) ;
 
 
-	 //data = search_address(I2C2) ;
+	 data = search_address(I2C1 , buff) ;
 
-	 uint8_t buff[2] ;
-	 buff[0] = 0x09 ;
-	 buff[1] = 0x0a ;
-
-	 error = I2C_Write(I2C2 , 0x57 ,buff , 1 ) ;
-
-	 delay_ms(2);
-
-	 I2C_Read(I2C2 ,0x57 , buff , 2) ;
+	 //while(1);
+//
+//	 error = I2C_Write(I2C2 , 0x57 ,buff , 1 ) ;
+//
+//	 delay_ms(2);
+//
+//	 I2C_Read(I2C2 ,0x57 , buff , 2) ;
 
      //128*64
 #endif
@@ -82,20 +85,36 @@ int main()
 	 lcd2.dev = I2C2 ;
 	 lcd3.dev = I2C3 ;
 
-	 //I2C_Init(I2C1) ;
+	 I2C_Init(I2C1) ;
 	 I2C_Init(I2C2) ;
 	 I2C_Init(I2C3) ;
 
+	 rtc_init(I2C1) ;
+
+	 rtc_I2C_TimeOffset() ;
+
 	 Display_Init(&lcd3);	//Configure Display
 	 Display_Init(&lcd2);	//Configure Display
-
+	 Display_Init(&lcd1);	//Configure Display
 	 keypad_init(GPIOC , 0) ;
 	 //Example: print a picture on screen
-	Display_Fill(&lcd3, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
-	Display_DrawBitmap(&lcd3 ,0, 0, looping, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
-	Display_UpdateScreen(&lcd3);
+		Display_Fill(&lcd3, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
+		Display_DrawBitmap(&lcd3 ,0, 0, looping, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+		Display_UpdateScreen(&lcd3);
 	Display_Fill(&lcd2, Display_COLOR_WHITE );	//the entire Display is white (written to RAM)
 	Display_UpdateScreen(&lcd2);
+	Display_Fill(&lcd1, Display_COLOR_BLACK );	//the entire Display is white (written to RAM)
+	Display_DrawBitmap(&lcd1 ,0, 0, alarm_logo, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+	Display_UpdateScreen(&lcd1);
+
+	uint8_t in_buffer[20]  ;
+	uint8_t out_buffer[20] ;
+
+
+	rtc_I2c_ReadAll(in_buffer);
+	rtc_I2C_Calculate(in_buffer , out_buffer);
+	Display_printTime(&lcd3 , out_buffer,&Font_7x10 );
+	Display_UpdateScreen(&lcd3);
 	while(1)
 	{
 

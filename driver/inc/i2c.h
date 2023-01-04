@@ -25,7 +25,7 @@
 
 void I2C_Init(I2C_TypeDef * i2c) ;
 
-int8_t search_address(I2C_TypeDef * i2c) ;
+int8_t search_address(I2C_TypeDef * i2c , uint8_t * address) ;
 
 int I2C_Write(I2C_TypeDef * i2c,uint8_t address , uint8_t * data , int len) ;
 

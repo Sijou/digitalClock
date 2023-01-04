@@ -1,0 +1,4 @@
+../driver/src/gpio.c:15:6:gpio_clock_enable	0	static
+../driver/src/gpio.c:68:6:reset_io	0	static
+../driver/src/gpio.c:75:6:gpio_config_pin	12	static
+../driver/src/gpio.c:84:6:gpio_set_pinState	0	static

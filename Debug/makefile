@@ -9,6 +9,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include rtc/subdir.mk
 -include keypad/subdir.mk
 -include driver/src/subdir.mk
 -include display/subdir.mk

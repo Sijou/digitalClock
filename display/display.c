@@ -300,7 +300,7 @@ void Display_I2C_Write(OLED_t * oled, uint8_t address, uint8_t dataRegister, uin
 }
 
 
-void display_printTime(OLED_t *oled ,uint8_t *rtc_bufferCalculated, FontDef_t *Font11x18)
+void Display_printTime(OLED_t *oled ,uint8_t *rtc_bufferCalculated, FontDef_t *Font11x18)
 {
 	//seconds
 	Display_GotoXY(oled ,0, 0);

@@ -1,0 +1,14 @@
+../display/display.c:132:6:Display_Fill	0	static
+../display/display.c:139:6:Display_DrawPixel	12	static
+../display/display.c:38:6:Display_DrawBitmap	56	static
+../display/display.c:161:6:Display_GotoXY	0	static
+../display/display.c:168:6:Display_Putc	32	static
+../display/display.c:200:6:Display_Puts	24	static
+../display/display.c:249:6:Display_I2C_WriteMulti	24	dynamic
+../display/display.c:278:6:Display_I2C_Write	24	static
+../display/display.c:118:6:Display_UpdateScreen	32	static
+../display/display.c:220:6:Display_Clear	8	static
+../display/display.c:65:9:Display_Init	24	static
+../display/display.c:225:6:Display_ON	24	static
+../display/display.c:230:6:Display_OFF	24	static
+../display/display.c:303:6:display_printTime	16	static

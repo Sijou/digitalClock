@@ -1,0 +1,5 @@
+../app/src/main.c:161:6:systick_enable	0	static
+../app/src/main.c:45:5:main	56	static
+../app/src/main.c:172:6:SysTick_Handler	0	static
+../app/src/main.c:177:6:delay_ms	0	static
+../app/src/main.c:184:10:get_mtick	0	static

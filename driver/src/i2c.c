@@ -92,8 +92,10 @@ void I2C_Init(I2C_TypeDef * i2c)
  * TETSED
  * return the first found address , -1 if no address found
  */
-int8_t search_address(I2C_TypeDef * i2c)
+int8_t search_address(I2C_TypeDef * i2c , uint8_t * address)
 {
+	int cnt = 0 ;
+	// 7 bits
 	for(int j = 0 ; j < 127 ;j++)
 		{
 
@@ -113,7 +115,20 @@ int8_t search_address(I2C_TypeDef * i2c)
 			  if((i2c->ISR & I2C_ISR_TXIS) > 0)
 			  {
 				  //data = j ;
-				  return j ;
+				  address[cnt] = j ;
+				  cnt++ ;
+				  //i2c->CR2 &= ~(1<<I2C_CR2_NBYTES_Pos) ;
+				  i2c->TXDR = 0x00 ;
+				  while ((i2c->ISR & I2C_ISR_TC) == 0) ;
+
+				  i2c->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
+				  delay_ms(100);
+				  if(cnt > 3 )
+				  {
+					  return -1 ;
+				  }
+				  //return j ;
+				  break ;
 
 			  }
 			  else{
@@ -124,7 +139,7 @@ int8_t search_address(I2C_TypeDef * i2c)
 		}
 	i2c->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
 
-	return -1 ;
+	return cnt ;
 }
 
 

@@ -26,4 +26,5 @@ app \
 display \
 driver/src \
 keypad \
+rtc \
 

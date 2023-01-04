@@ -1,4 +1,4 @@
 ../driver/src/i2c.c:19:6:I2C_Init	16	static
-../driver/src/i2c.c:95:8:search_address	24	static
-../driver/src/i2c.c:131:5:I2C_Write	32	static
-../driver/src/i2c.c:190:6:I2C_Read	32	static
+../driver/src/i2c.c:95:8:search_address	32	static
+../driver/src/i2c.c:146:5:I2C_Write	32	static
+../driver/src/i2c.c:205:6:I2C_Read	32	static

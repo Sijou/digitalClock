@@ -1,0 +1,3 @@
+../keypad/keypad.c:54:13:keypad_config_key_direction	32	static
+../keypad/keypad.c:40:6:keypad_init	16	static
+../keypad/keypad.c:90:6:keypad_get_pressedkey	48	static

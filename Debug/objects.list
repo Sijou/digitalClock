@@ -5,3 +5,4 @@
 "./driver/src/gpio.o"
 "./driver/src/i2c.o"
 "./keypad/keypad.o"
+"./rtc/rtc.o"
