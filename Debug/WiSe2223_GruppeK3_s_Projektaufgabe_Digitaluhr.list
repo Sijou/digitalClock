@@ -257,7 +257,7 @@ int main()
  80002e4:	2100      	movs	r1, #0
  80002e6:	4827      	ldr	r0, [pc, #156]	; (8000384 <main+0x15c>)
  80002e8:	f000 fa71 	bl	80007ce <Display_Fill>
-		Display_DrawBitmap(&lcd3 ,0, 0, horse_image, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+		Display_DrawBitmap(&lcd3 ,0, 0, image_data, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
  80002ec:	2301      	movs	r3, #1
  80002ee:	9302      	str	r3, [sp, #8]
  80002f0:	2340      	movs	r3, #64	; 0x40

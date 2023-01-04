@@ -72,9 +72,9 @@ Discarded input sections
  .rodata.helix  0x0000000000000000      0x400 ./app/src/main.o
  .rodata.looping
                 0x0000000000000000      0x400 ./app/src/main.o
- .rodata.image_data
-                0x0000000000000000      0x400 ./app/src/main.o
  .rodata.marilyn_monroe
+                0x0000000000000000      0x400 ./app/src/main.o
+ .rodata.horse_image
                 0x0000000000000000      0x400 ./app/src/main.o
  .rodata.titel_image
                 0x0000000000000000      0x400 ./app/src/main.o
@@ -719,9 +719,8 @@ LOAD c:/st/stm32cubeide_1.10.1/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.ext
  .rodata.alarm_logo
                 0x00000000080013c8      0x400 ./app/src/main.o
                 0x00000000080013c8                alarm_logo
- .rodata.horse_image
+ .rodata.image_data
                 0x00000000080017c8      0x400 ./app/src/main.o
-                0x00000000080017c8                horse_image
  .rodata.Font7x10
                 0x0000000008001bc8      0x76c ./display/fonts.o
                 0x0000000008002334                . = ALIGN (0x4)

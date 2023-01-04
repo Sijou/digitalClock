@@ -103,7 +103,7 @@ int main()
 	 keypad_init(GPIOC , 0) ;
 	 //Example: print a picture on screen
 		Display_Fill(&lcd3, Display_COLOR_BLACK);	//the entire Display is white (written to RAM)
-		Display_DrawBitmap(&lcd3 ,0, 0, horse_image, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
+		Display_DrawBitmap(&lcd3 ,0, 0, image_data, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
 		Display_UpdateScreen(&lcd3);
 
 		Display_Fill(&lcd2, Display_COLOR_WHITE );	//the entire Display is white (written to RAM)
