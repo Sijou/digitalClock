@@ -1,0 +1,8 @@
+../rtc/rtc.c:10:13:rtc_write_reg	24	static
+../rtc/rtc.c:20:13:rtc_read_reg	24	static
+../rtc/rtc.c:26:6:rtc_init	16	static
+../rtc/rtc.c:31:6:rtc_I2C_TimeOffset	8	static
+../rtc/rtc.c:45:6:rtc_I2c_ReadAll	16	static
+../rtc/rtc.c:57:6:rtc_I2C_Calculate	32	static
+../rtc/rtc.c:129:16:rtc_get_reg	24	static
+../rtc/rtc.c:140:6:rtc_get_time	16	static

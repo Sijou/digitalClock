@@ -124,3 +124,22 @@ void rtc_I2C_Calculate(uint8_t *rtc_bufferReceive, uint8_t *rtc_bufferOut)
 	rtc_bufferOut[12]= year_zehner/16;
 
 }
+
+
+static uint8_t rtc_get_reg(uint8_t reg)
+{
+	uint8_t val ;
+
+	I2C_Write(I2C1 , 0x68 , reg , 1) ;
+
+	I2C_Read(I2C1 , 0x68 , &val , 1) ;
+
+	return val ;
+}
+
+void rtc_get_time(rtc_time_t * rtc_time )
+{
+	rtc_time->sec  = rtc_get_reg(RTC_REG_SECOND) ;
+	rtc_time->min  = rtc_get_reg(RTC_REG_MINUTE) ;
+	rtc_time->hr   = rtc_get_reg(RTC_REG_HOUR) ;
+}

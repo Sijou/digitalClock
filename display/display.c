@@ -2,6 +2,7 @@
 #include "stm32f3xx.h"
 #include "display.h"
 #include "fonts.h"
+#include "i2c.h"
 
 // Write Command/ Data/ Buffer
 #define Display_WriteCommand(oled ,command)      Display_I2C_Write(oled , 0x3C, 0x00, (command), 2)
@@ -272,11 +273,14 @@ void Display_I2C_WriteMulti(OLED_t * oled,uint8_t address, uint8_t dataRegister,
 			while((i2c->ISR & I2C_ISR_TXIS)==0){}		//ggf TXIS mit TXE ergänzen
 		}
 	}
+
 }
 
 
 void Display_I2C_Write(OLED_t * oled, uint8_t address, uint8_t dataRegister, uint8_t data , uint8_t numBytes)
 {
+
+
 	uint8_t j;
 	uint8_t dt[2];
 	I2C_TypeDef *  i2c = oled->dev;
@@ -297,6 +301,7 @@ void Display_I2C_Write(OLED_t * oled, uint8_t address, uint8_t dataRegister, uin
 			while((i2c->ISR & I2C_ISR_TXIS)==0){}
 		}
 	}
+
 }
 
 

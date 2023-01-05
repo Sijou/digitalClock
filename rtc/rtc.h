@@ -32,6 +32,14 @@
 #define RTC_A2_HOUR		0x0c
 #define RTC_A2_DATE		0x0d
 
+
+typedef struct {
+	uint8_t sec ;
+	uint8_t min ;
+	uint8_t hr  ;
+}rtc_time_t;
+
+void rtc_get_time(rtc_time_t * rtc_time ) ;
 void rtc_init(I2C_TypeDef * dev) ;
 
 void rtc_I2C_Calculate(uint8_t *bufferReceive, uint8_t *bufferCalculated);
