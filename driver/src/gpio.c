@@ -16,7 +16,7 @@ void gpio_clock_enable(GPIO_TypeDef * Port)
 {
 	if(Port == GPIOA)        //  Bit 17 IOPAEN: I/O port A clock enable
 	{
-		RCC->AHBENR |= (1 << GPIOA_CLOCK_ENABLE_BIT) ;
+		RCC->AHBENR |= (1 << GPIOA_CLOCK_ENABLE_BIT) ; //(1<<17);
 	}
 	else if(Port == GPIOB)  //    Bit 18 IOPBEN: I/O port B  clock enable
 	{
@@ -66,7 +66,7 @@ void gpio_clock_enable(GPIO_TypeDef * Port)
 }
 
 void reset_io(GPIO_TypeDef * Port ) {
-	Port->MODER   = 0x00 ;             // set  pin Mode
+	Port->MODER   = 0x00 ;             // set pin Mode
 	Port->OTYPER  = 0x00 ;             //set output type OD/PP
 	Port->OSPEEDR = 0x00 ;             //set output speed
 	Port->PUPDR	  = 0x00 ;             //set pin Pull
