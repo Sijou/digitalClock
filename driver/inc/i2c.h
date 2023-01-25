@@ -31,9 +31,4 @@ void I2C_Write(I2C_TypeDef * i2c , uint8_t address , uint8_t * data , uint8_t le
 
 void I2C_Read(I2C_TypeDef * i2c,uint8_t address , uint8_t * buffer , int len) ;
 
-void I2C_Read1(I2C_TypeDef * i2c ,uint8_t adr , uint8_t * buffer , uint8_t len) ;
-
-void My_i2c_read(I2C_TypeDef * i2c ,uint8_t address , uint8_t * buffer , uint8_t len) ;
-
-
 #endif /* DRIVER_INC_I2C_H_ */

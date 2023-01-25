@@ -160,93 +160,9 @@ void I2C_Write(I2C_TypeDef * i2c , uint8_t address , uint8_t * data , uint8_t le
 		}
 }
 
-int I2C_Write1(I2C_TypeDef * i2c , uint8_t address , uint8_t * data , int len)
-{
-	 uint32_t start_time = 0 ;
-	 //int ret = 0 ;
-	 // Send start + slave address
-	 i2c->CR2  = ((address << 1) << I2C_CR2_SADD_Pos) ;  // set the slave address
-	 i2c->CR2 |=   (len << I2C_CR2_NBYTES_Pos) ;// set the number of bytes to transmitted
-	 i2c->CR2 |= I2C_CR2_START; 					   // generate the start condition
-	 while ((i2c->ISR & I2C_ISR_TXIS) == 0)  // wait for ASK
-	 {
-		  if (i2c->ISR & I2C_ISR_NACKF)	      // No ASK is received (error)
-			  return ERROR_ADDRESS_NOT_FOUND ;//while(1) ;
-		  if( get_mtick() - start_time > I2C_TIMOUT)
-		 {
-			 return ERROR_TIMEOUT ;
-		 }
-	 }
 
 
-//send data bit by bit
-	 for(int i = 0 ;i<len  ;i++)
-	 {
-		 i2c->TXDR = *data;
-		 data++ ;
 
-		 if(i == len -1)
-		 {
-			 start_time = get_mtick() ;
-
-			 while ((i2c->ISR & I2C_ISR_TC) == 0)            // last bit
-			 {
-				 if (i2c->ISR & I2C_ISR_NACKF)               // no answer
-					 return ERROR_NANK_RECEIVED ;//while(1) ;
-				 if( get_mtick() - start_time > I2C_TIMOUT)
-				 {
-					 return ERROR_TIMEOUT ;
-				 }
-			 }
-		 }
-		 else{
-			 while ((i2c->ISR & I2C_ISR_TXIS) == 0)  //transmit interrupt status
-			 {
-				 if (i2c->ISR & I2C_ISR_NACKF)
-					 return ERROR_NANK_RECEIVED ;//while(1) ;
-				 if( get_mtick() - start_time > I2C_TIMOUT)
-				 {
-					 return ERROR_TIMEOUT ;
-				 }
-			 }
-		 }
-	 }
-
-
-	 i2c->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
-
-	 return ERROR_OK ;
-}
-
-void I2C_Read1(I2C_TypeDef * i2c ,uint8_t adr , uint8_t * buffer , uint8_t len)
-{
-	i2c->CR2 = (((adr << 1) << I2C_CR2_SADD_Pos)
-				   |(len << I2C_CR2_NBYTES_Pos) | (1 << I2C_CR2_RD_WRN_Pos));	//send address + anz of bytes to read + READ
-
-	i2c->CR2 |= I2C_CR2_START;		// Generate START
-	 for( int i = 0 ;i<len ;i++)
-	 {
-		 //while((i2c->ISR & I2C_ISR_RXNE) == 0) ; //wait for rx data
-		 while ((i2c->ISR & I2C_ISR_RXNE) == 0) {
-				if (i2c->ISR & I2C_ISR_NACKF)
-					break;
-			}
-
-		 buffer[i] = i2c->RXDR ;     //read rx
-
-		// buffer++ ;
-
-		 if(i == len - 1)
-		 {
-			 while((i2c->ISR & I2C_ISR_TC) == 0) ; //wait for TC Flag
-		 }
-		 else{
-			 //nope
-		 }
-	 }
-	// I2C1->CR2 |= I2C_CR2_NACK;
-	 i2c->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
-}
 
 void I2C_Read(I2C_TypeDef * i2c ,uint8_t address , uint8_t * buffer , int len)
 {
@@ -277,32 +193,4 @@ void I2C_Read(I2C_TypeDef * i2c ,uint8_t address , uint8_t * buffer , int len)
 	 i2c->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
 }
 
-void My_i2c_read(I2C_TypeDef * i2c ,uint8_t address , uint8_t * buff1 , uint8_t len)
-{
-	i2c->CR2 = (((address << 1) << I2C_CR2_SADD_Pos)
-				   |(len << I2C_CR2_NBYTES_Pos) | (1 << I2C_CR2_RD_WRN_Pos));	//send address + anz of bytes to read + READ
 
-		 i2c->CR2 |= I2C_CR2_START;		// Generate START
-		 for( int i = 0 ;i<len ;i++)
-		 {
-			 //while((i2c->ISR & I2C_ISR_RXNE) == 0) ; //wait for rx data
-			 while ((i2c->ISR & I2C_ISR_RXNE) == 0) {
-			 		if (i2c->ISR & I2C_ISR_NACKF)
-			 			break;
-			 	}
-
-			 buff1[i] = i2c->RXDR ;     //read rx
-
-			// buffer++ ;
-
-			 if(i == len - 1)
-			 {
-				 while((i2c->ISR & I2C_ISR_TC) == 0) ; //wait for TC Flag
-			 }
-			 else{
-				 //nope
-			 }
-		 }
-
-		 i2c->CR2 |= (1<<I2C_CR2_STOP_Pos); //Generate Stop condition
-}

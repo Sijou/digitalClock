@@ -51,47 +51,6 @@ int rtc_I2C_Read1 ( uint8_t address, uint8_t dataRegister, uint8_t  *bufferRecei
 10.repeat 9./10. if more data to read
 **/
 
-/*
-	int remainingRX = rcvDataLen;
-
-	I2C1->CR2 = ((address << 1) << I2C_CR2_SADD_Pos) |(1 << I2C_CR2_NBYTES_Pos);	//send address + data of register + WRITE
-
-	I2C1->CR2 |= I2C_CR2_START;		// Generate START
-
-	while ((I2C1->ISR & I2C_ISR_TXIS)==0) {	//abfrage am TXIS bit, is set to 1 when TXDR is empty and should be 1 at this point
-		if ((I2C1->ISR & I2C_ISR_NACKF)){
-			return -1;
-		}
-	}
-
-	I2C1->TXDR = dataRegister;	//TXDR get the data to transmit, - TXIS is set to 0
-
-	while ((I2C1->ISR & I2C_ISR_TC)==0) {	//when NBYTES has been send, is cleared when Start/Stop bit is set
-		if (I2C1->ISR & I2C_ISR_NACKF)
-			return -2;
-	}
-
-	I2C1->CR2 |= I2C_CR2_STOP;
-
-	I2C1->CR2 = (((address << 1) << I2C_CR2_SADD_Pos) |(1 << I2C_CR2_NBYTES_Pos) | (1 << I2C_CR2_RD_WRN_Pos));	//send address + anz of bytes to read + READ
-
-	I2C1->CR2 |= I2C_CR2_START;		// Generate START
-
-	while ((I2C1->ISR & I2C_ISR_RXNE) == 0) {
-		if (I2C1->ISR & I2C_ISR_NACKF)
-			return -1;
-	}
-
-	bufferReceive[dataRegister] = I2C1->RXDR;
-
-	I2C1->CR2 |= I2C_CR2_NACK;
-	I2C1->CR2 |= I2C_CR2_STOP;
-
-	return 0 ;
-}
-
-*/
-//uint8_t data ;
 
 
 uint32_t SystemCoreClock_ = 8000000; //8 Mhz
@@ -121,17 +80,6 @@ int main()
 
 	gpio_set_pinState(GPIOA , 5 , LOW) ;
 
-	//SYSCFG->CFGR1 |= (1<<16) |(1<<17) ;// set PB6 and PB7 I2C mode
-#ifdef I2C_WRITE_READ_BM
-
-	 uint8_t buff[3] ;
-
-	 I2C_Init(I2C1) ;
-
-
-	 data = search_address(I2C1 , buff) ;
-
-#endif
 
 	 lcd1.dev = I2C1 ;
 	 lcd2.dev = I2C2 ;
@@ -142,18 +90,6 @@ int main()
 	 I2C_Init(I2C3) ;
 
 	 rtc_init(I2C1);
-
-	// uint8_t buff1[5] = {0};
-	// buff1[4] = 0x91 ;
-	// buff1[0] = RTC_REG_MINUTE ;
-
-
-
-
-	// I2C_Write(I2C1 , 0x68 , buff1 , 1) ;
-	// I2C_Read(I2C1 , 0x68 , buff1 , 1) ;
-
-
 
 	 Display_Init(&lcd3);	//Configure Display
 	 Display_Init(&lcd2);	//Configure Display
@@ -171,52 +107,12 @@ int main()
 	Display_Fill(&lcd3, Display_COLOR_BLACK);	//the entire Display is white (written to RAM)
 	Display_DrawBitmap(&lcd3 ,0, 0, horse_image, 128, 64, Display_COLOR_WHITE);	//data of picture into RAM	(available pictures: helix & looping)
 	Display_UpdateScreen(&lcd3);
-//
-//	uint8_t in_buffer[20]  ;
-//	uint8_t out_buffer[20] ;
-//
-/**  bug in one of those functions**/
-//	rtc_I2c_ReadAll(in_buffer);
-//	rtc_I2C_Calculate(in_buffer , out_buffer);
-//	Display_printTime(&lcd3 , out_buffer,&Font_7x10 );
-//	Display_UpdateScreen(&lcd3);
 
 
 	rtc_time_t t ;
 	rtc_date_t d ;
 
-
-	d.day = 14 ;
-	d.month = 1 ;
-	d.year = 23 ;
-
-	rtc_set_date(&d) ;
-
-	delay_ms(1000) ;
-
 	rtc_get_date(&d) ;
-
-	if( d.day != 14 )
-	{
-		gpio_set_pinState(GPIOA , 5 , HIGH) ;
-		while(1) ;
-	}
-	if(d.month != 1)
-	{
-		gpio_set_pinState(GPIOA , 5 , HIGH) ;
-		while(1) ;
-	}
-	if(d.year != 23){
-		gpio_set_pinState(GPIOA , 5 , HIGH) ;
-		while(1) ;
-	}
-
-
-//	t.min = 59 ;
-//	t.sec = 43 ;
-//	t.hr = 20 ;
-
-	//rtc_set_time(&t);
 
 	char my_time[20] ;
 
@@ -229,12 +125,6 @@ int main()
 		sprintf(my_time , "%.2d:%.2d:%.2d",t.hr , t.min , t.sec) ;
 		sprintf(my_date , " 20%.2d/%.2d/%.2d" , d.year , d.month ,d.day) ;
 
-		if(t.sec > 59)
-		{
-			gpio_set_pinState(GPIOA , 5 , HIGH) ;
-			while(1) ;
-		}
-
 		Display_GotoXY(&lcd2 , 20,5);
 
 		Display_Puts(&lcd2 ,my_time ,& Font_7x10 , Display_COLOR_BLACK ) ;
@@ -246,27 +136,19 @@ int main()
 		Display_UpdateScreen(&lcd2);
 		//delay_ms(10);
 		char c = keypad_get_pressedkey() ;
-/*
+
 		if(c != 0)
 		{
 			gpio_set_pinState(GPIOA , 5 , HIGH) ;
 			Display_Putc(&lcd2 , c , &Font_7x10 , Display_COLOR_BLACK) ;
 			Display_UpdateScreen(&lcd2);
 		}
-*/
 
-#ifdef BLINK
-		gpio_set_pinState(GPIOA , 5 , HIGH) ;
-
-		delay_ms(500) ;
-
-		gpio_set_pinState(GPIOA , 5 , LOW) ;
-
-		delay_ms(500) ;
-#endif /*BLINK*/
+	}
+}
 
 
-		/** width 7* height 10
+/** width 7* height 10
 		 * 0x3800, 0x4400, 0x4000, 0x3000, 0x0800, 0x0400, 0x4400, 0x3800, 0x0000, 0x0000,  // S
 		 *
 		 *   0 0 1 1 1 0 0 0
@@ -293,8 +175,6 @@ int main()
 		 */
 
 
-	}
-}
 
 // core_cm4.h  Zeile 759 ->765
 /**

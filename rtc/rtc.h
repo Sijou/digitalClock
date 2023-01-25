@@ -15,6 +15,7 @@
  *
  */
 #include "stm32f303xe.h"
+#include "stdbool.h"
 
 //all available register on RTC
 
@@ -46,8 +47,10 @@
 #define RTC_24H_MASK       0x3f
 #define RTC_AM_PM_BIT_MASK 0x20
 
-#define  GET_BCD_HIGH(X)  ((X<<4) & 0x0f)
-#define  GET_BCD_LOW(X)  (X & 0x0f)
+#define RTC_STATUS_AF1_MASK  0x01
+
+#define  GET_BCD_HIGH(X)  ((X / 10)<<4)
+#define  GET_BCD_LOW(X)   (X % 10)
 
 typedef enum {
 	H_24 ,
@@ -85,13 +88,16 @@ void rtc_set_date(rtc_date_t *date) ;
 
 void rtc_get_date(rtc_date_t * date) ;
 
-void rtc_set_alarm(rtc_time_t * alarm)  ;
+void rtc_set_alarm(rtc_time_t * alarm) ;
+
+//test purposes
+void rtc_get_alarm(rtc_time_t * tm)    ;
+
+bool rtc_is_alarm_set( ) ;
+
+void rtc_alarm_clear() ;
 
 uint8_t rtc_get_reg(uint8_t reg) ;
 
-void rtc_I2C_Calculate(uint8_t *bufferReceive, uint8_t *bufferCalculated);
-void rtc_I2C_TimeOffset(void);
-void rtc_I2c_ReadAll(uint8_t *rtc_bufferReceive);
-void rtc_I2C_Calculate(uint8_t *rtc_bufferReceive, uint8_t *rtc_bufferOut);
 
 #endif /* RTC_RTC_H_ */
