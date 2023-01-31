@@ -52,6 +52,14 @@
 #define  GET_BCD_HIGH(X)  ((X / 10)<<4)
 #define  GET_BCD_LOW(X)   (X % 10)
 
+
+typedef void (*callback_t)(void) ;
+/*
+ * clock_mode_t is an enumerated type that defines the two clock modes: H_24 for 24-hour mode and H_12 for 12-hour mode.
+   AM_PM_t is an enumerated type that defines two values: AM and PM, used only in 12-hour mode.
+   rtc_time_t is a struct that contains the fields for the current time, including the seconds, minutes, hours, clock mode and AM/PM value.
+   rtc_date_t is a struct that contains the fields for the current date, including the day, month and year.
+ */
 typedef enum {
 	H_24 ,
 	H_12 ,
@@ -80,9 +88,9 @@ typedef struct {
 
 void rtc_init(I2C_TypeDef * dev) ;
 
-void rtc_get_time(rtc_time_t * rtc_time ) ;
+void rtc_get_time(rtc_time_t * rtc_time ) ;  //read time from rtc
 
-void rtc_set_time(rtc_time_t * rtc_time ) ;
+void rtc_set_time(rtc_time_t * rtc_time ) ;  // write time to rtc
 
 void rtc_set_date(rtc_date_t *date) ;
 
@@ -99,5 +107,8 @@ void rtc_alarm_clear() ;
 
 uint8_t rtc_get_reg(uint8_t reg) ;
 
+void rtc_set_alarm_callback(callback_t callback) ;
+
+void rtc_update(void) ;
 
 #endif /* RTC_RTC_H_ */

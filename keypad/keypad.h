@@ -13,7 +13,11 @@
 
 #include "gpio.h"
 #include "stm32f3xx.h"
-
+/*
+ * This is a definition of an enumerated data type called "keypad_states." Enumerated data types are used to define a set of named integer values.
+ * In this case, the enumerated type "keypad_states" has three values: State_free, State_key_pressed, and State_key_released.
+ * These values can be used to represent the possible states of a keypad, such as whether a key is currently pressed, released, or in a neutral state.
+ */
 typedef enum {
 	State_free ,
 	State_key_pressed ,

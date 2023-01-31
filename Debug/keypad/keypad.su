@@ -1,4 +1,4 @@
-../keypad/keypad.c:40:6:keypad_init	16	static
-../keypad/keypad.c:54:13:keypad_config_key_direction	24	static
-../keypad/keypad.c:69:13:keypad_inverse_pin_direction	24	static
-../keypad/keypad.c:90:6:keypad_get_pressedkey	32	static
+../keypad/keypad.c:38:6:keypad_init	16	static
+../keypad/keypad.c:59:13:keypad_config_key_direction	24	static
+../keypad/keypad.c:82:13:keypad_inverse_pin_direction	24	static
+../keypad/keypad.c:117:7:keypad_get_pressedkey	32	static

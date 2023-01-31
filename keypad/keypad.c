@@ -29,13 +29,11 @@ static void keypad_config_key_direction( GPIO_TypeDef * port , int s_pin)  ;
 static void keypad_inverse_pin_direction( GPIO_TypeDef * port , int s_pin) ;
 
 /**
- * config keypad pins
- * In order for the microcontroller to determine which key is pressed, it must first pull each of the four columns (pins 1-4)
- * either low or high and then query the states of the four rows (pins 5-8).
- * Depending on the state of the columns, the microcontroller can determine which key was pressed.
- * Let's assume your program switches all four columns to low and then switches the first row to high.
- * Then it reads the input states of each column and reads pin 1 high.
- * This means that a contact has been made between column 4 and row 1, so the 'A' key has been pressed.
+ * The function keypad_init() takes two arguments, the first one is the base address of the port to which keypad is connected
+ * and the second one is the pin number of the start pin of the keypad.
+ * The function initializes the keypad by setting the keypad port and start pin, enabling the clock for the specified GPIO port,
+ * and configuring the keypad's key direction (input or output) using the keypad_config_key_direction() function.
+
  */
 void keypad_init(GPIO_TypeDef * port , int s_pin)
 {
@@ -47,6 +45,13 @@ void keypad_init(GPIO_TypeDef * port , int s_pin)
 /*
  * rows (pins : 1-4)
  * columns (pins : 5-8)
+ *
+ *
+ *
+ * This function configures the direction and pull of pins used for a keypad connected to the given port.
+ * The s_pin parameter specifies the starting pin number for the keypad configuration.
+ * The function sets the first 4 pins as output with no pull and the next 4 pins as input with pull-up.
+ * The function also calls a reset_io(port) function to reset the state of the port's pins, but it's unclear from this code snippet what that function does.
  */
 
 
@@ -66,6 +71,14 @@ static void keypad_config_key_direction( GPIO_TypeDef * port , int s_pin)
 	gpio_config_pin(port ,s_pin++ ,GPIO_IN , GPIO_SPEED_LOW , GPIO_PULL_UP,GPIO_PUSHPULL) ;  //C4  1
 }
 
+/*
+ * This function is used to configure the direction of the pins used for the keypad.
+ * The keypad_config_key_direction() function sets the direction of the R pins to output and C pins to input with pull-up,
+ * while the keypad_inverse_pin_direction() function sets the direction of the R pins to input with pull-down and C pins to output with no pull.
+ * The reset_io() function is used to reset the pin direction and configuration of the specified port.
+ * The s_pin argument is used to specify the starting pin number for the keypad pins on the specified port.
+ * This is likely to be used in a keypad driver to configure the keypad pins and read keypad input.
+ */
 static void keypad_inverse_pin_direction( GPIO_TypeDef * port , int s_pin)
 {
 	reset_io(port) ;
@@ -85,41 +98,45 @@ static void keypad_inverse_pin_direction( GPIO_TypeDef * port , int s_pin)
 
 
 /**
- * return the pressedkey other wise 0
+ * This code is a C function for reading input from a keypad connected to a microcontroller.
+ * The function uses the microcontroller's General Purpose Input/Output (GPIO) ports to read the state of the keypad's pins
+ * and determine which key, if any, is currently being pressed.
+ * The function starts by declaring several variables to store the state of the keypad's pins and the key that was pressed.
+ * It then checks the current state of the keypad using a switch statement, with three possible states: State_free, State_key_pressed, and State_key_released.
+ * In the State_free case, the function reads the state of the keypad's pins using the IDR register of the GPIOC port,
+ * and checks if any key is pressed by comparing the value to the default input state of the keypad. If a key is pressed,
+ * the function sets the direction of the keypad's pins to output and uses a loop to determine the row and column of the pressed key.
+ * The key's value is then returned.
+ * In the State_key_pressed case, the function checks if the key has been released by comparing the state of the keypad's pins to the default input state.
+ * If the key has been released, the function sets the state to State_key_released.
+ * In the State_key_released case, the function sets the state back to State_free.
+ * The function then returns the value of the pressed key, or 0 if no key was pressed.
+ * Overall, this function uses a combination of bit shifting, bit masking and loops to read the state of the keypad and determine which key is pressed.
+ * The function is not very readable and could be improved by adding more comments and breaking it down into smaller functions for better readability and maintainability.
  */
-char keypad_get_pressedkey()
-{
+	char keypad_get_pressedkey()
+					{
+					    uint16_t porte = 0;   // Set a variable to store the state of the GPIOC pins
+					    porte = GPIOC->IDR ; /* IDR is a register of the GPIOC that contains the input states of the pins.
+					                            * We can read the whole pin status of the GPIOC port with the IDR register.
+					                            */
+					    uint8_t  eidr  = 0;  // Set a variable to store the state of the 8 keypad pins
+					    uint8_t  ch    = 0;
+					    char ret = 0 ;
 
-	uint16_t porte = 0;   // set porte to zero where the pins of the used GPIO port (C , Pins : 0-15) will be stored.
-	porte = GPIOC->IDR ; /* IDR is one of the GPIO registers that contains the input states of the pins of a GPIO port.
-	                      * We can read the whole pin status of a GPIO port with the IDR register.
-	                      */
-    uint8_t  eidr  = 0;  // set eidr to zero where only the 8 used pins will be stored.
-	uint8_t  ch    = 0;
-	char ret = 0 ;
+					    // Check the current state of the keypad
+					    switch(state)
+					    {
+					        case State_free : // Initial state, no key has been pressed yet
+					            {
+					                eidr = (porte >> start_pin) ; // Get the state of the keypad pins
+					                if(eidr != DEFAULT_KEYPAD_PORT_INP) // If the value is different than the default input state
+					                {
+					                    ch = ~eidr; // Set the inverse of eidr in ch
+					                    ch = ch & DEFAULT_KEYPAD_PORT_INP; // Get the row of the pressed key
 
-    switch(state)
-	{
-		case State_free ://initial
-			{
-				//15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 gpioc
-				// x x  x  x  x  x                  x x
-				eidr = (porte >> start_pin) ;//  & 0xff ; // get the state od the keypad pins
-                 /*
-                  * with the add 0xff we will set the rest of the pins we don't need to 0 but here eidr is uint8_t anyway
-                  * so only the first 8 pins are assumed here.
-                  * and adding 0xff is then no longer necessary
-                  */
-				if(eidr != DEFAULT_KEYPAD_PORT_INP)       // if now the value is different than the DEFAULT_KEYPAD_PORT_INP 0xf0
-				{ //   &0Xf0
-					ch = ~eidr;                           // set the inverse of eidr in ch
-					ch = ch & DEFAULT_KEYPAD_PORT_INP;    // with the addition of 0xf0 we get 1 in the changed bit position
-                                                            // we get the used row
-
-
-					//set  the first 4 pins as input and the second 4 pins as output
-					keypad_inverse_pin_direction(keypad_port ,start_pin ) ;
-
+					                    // Set the first 4 pins as input and the second 4 pins as output
+					                    keypad_inverse_pin_direction(keypad_port ,start_pin ) ;
 					uint16_t out = (ch << start_pin) ;  //
 
 					keypad_port->ODR = out ;

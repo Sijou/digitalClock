@@ -34,7 +34,13 @@
 
 
 
-
+/*
+ * This function is used for displaying a bitmap image on an OLED display.
+ * It takes in a pointer to an OLED object, as well as the x and y coordinates of where the image should be displayed on the screen,
+ * a pointer to the bitmap image data, the width and height of the image, and the color of the image.
+ * The function uses a nested loop to iterate through the image data and draw each pixel on the OLED display using the Display_DrawPixel function.
+ * The function also calculates the byte width of the image and uses bit shifting to extract the appropriate pixel data from the bitmap image data.
+ */
 
 void Display_DrawBitmap(OLED_t *oled ,uint16_t x, uint16_t y, const unsigned char *bitmap, uint16_t w, uint16_t h, Display_COLOR_t color)
 {
@@ -60,7 +66,12 @@ void Display_DrawBitmap(OLED_t *oled ,uint16_t x, uint16_t y, const unsigned cha
     }
 }
 
-
+/*
+ * This function initializes an OLED display by sending a series of commands to configure its memory addressing, contrast, and other settings.
+ * It also sets the OLED's internal "CurrentX" and "CurrentY" variables to 0, and sets the "Initialized" variable to 1 to indicate that the OLED has been initialized successfully.
+ * The function also deactivates scrolling on the OLED and fills the screen with black color.
+ * At the end, the function returns 1 to indicate that the initialization was successful.
+ */
 
 
 uint8_t Display_Init(OLED_t * oled) {
@@ -115,7 +126,12 @@ uint8_t Display_Init(OLED_t * oled) {
 	// Return OK
 	return 1;
 }
-
+/*
+ * This function updates the screen of the OLED display by writing the contents of the buffer "oled->Display_Buffer" to the screen.
+ * It does this by iterating through each of the 8 pages (m) on the OLED display and setting the page address to the current page (0xB0 + m).
+ * It then sets the column address to the start of the page (0x00 and 0x10) and writes the contents
+ * of the corresponding section of the buffer (Display_WIDTH * m) to the screen using the Display_I2C_WriteMulti function.
+ */
 void Display_UpdateScreen(OLED_t * oled) {
 	uint8_t m;
 
@@ -129,7 +145,13 @@ void Display_UpdateScreen(OLED_t * oled) {
 	}
 }
 
-
+/*
+ * The function Display_Fill is used to fill the OLED display's buffer (oled->Display_Buffer) with a specified color.
+ * The function takes in two arguments: a pointer to an OLED structure (oled) and the color to fill the display with (color).
+ * The memset function is then used to fill the buffer with either 0x00 (black) or 0xFF (white) depending on the color passed in as an argument.
+ * The number of bytes to be filled is equal to the size of the buffer, which is defined by sizeof(oled->Display_Buffer).
+ * This function is used to clear the screen and set all pixels to the specified color.
+ */
 void Display_Fill(OLED_t * oled , Display_COLOR_t color) {
 	// Set memory, fill a block of memory with value
 	memset(oled->Display_Buffer, (color == Display_COLOR_BLACK) ? 0x00 : 0xFF, sizeof(oled->Display_Buffer));
@@ -137,6 +159,15 @@ void Display_Fill(OLED_t * oled , Display_COLOR_t color) {
 }
 
 
+/*
+ * This function is for drawing a single pixel on the OLED display.
+ * It takes in a pointer to an OLED structure, x and y coordinates for the pixel, and a color for the pixel.
+ * It first checks if the coordinates given are within the bounds of the display's width and height.
+ * If they are not, the function exits. Next, it checks if the display is set to be inverted and, if it is, it inverts the color of the pixel.
+ * Finally, it sets the color of the pixel in the Display_Buffer using bit manipulation. If the color is white, it sets the corresponding bit in the buffer to 1.
+ * If the color is black, it sets the corresponding bit to 0.
+ * This allows the display to render the pixel on the screen.
+ */
 void Display_DrawPixel(OLED_t * oled ,uint16_t x, uint16_t y, Display_COLOR_t color) {
 
 	if (x >= Display_WIDTH || y >= Display_HEIGHT)
@@ -158,14 +189,25 @@ void Display_DrawPixel(OLED_t * oled ,uint16_t x, uint16_t y, Display_COLOR_t co
 	}
 }
 
-
+/*
+ * This function sets the current write position on the OLED display to the specified x and y coordinates.
+ * The OLED_t struct pointer "oled" is passed in as a parameter, and the struct contains the current x and y position as members "CurrentX" and "CurrentY", respectively.
+ * The function updates these members with the new x and y coordinates passed in as parameters.
+ * This allows for easy control over the position for subsequent writes or drawing operations.
+ */
 void Display_GotoXY(OLED_t * oled ,uint16_t x, uint16_t y) {
 	// Set write pointers
 	oled->CurrentX = x;
 	oled->CurrentY = y;
 }
 
-
+/*
+ * This function takes in a pointer to an OLED structure, a character to be written, a pointer to a font definition, and a color.
+ * It checks if there is enough space on the OLED display to write the character in the current position,
+ * and if there is, it uses the font definition to determine which pixels should be turned on or off to write the character.
+ * It then increments the current X position on the OLED structure so that the next character can be written in the correct position.
+ * The function returns the character that was written.
+ */
 char Display_Putc(OLED_t * oled ,char ch, FontDef_t *Font, Display_COLOR_t color) {
 	uint32_t i, b, j;
 
@@ -197,7 +239,14 @@ char Display_Putc(OLED_t * oled ,char ch, FontDef_t *Font, Display_COLOR_t color
 	return ch;
 }
 
-
+/*
+ * This function takes in a pointer to an OLED structure, a string, a pointer to a font definition, and a color as inputs.
+ * It then writes the characters of the string to the OLED display, one by one, using the Display_Putc function to write each individual character.
+ * The function starts by setting a pointer to the first character of the string and then loops through each character of the string. For each character,
+ * the function calls the Display_Putc function to write the character to the OLED display and then increments the pointer to the next character in the string.
+ * If there is an error while writing a character, the function returns that character.
+ * If all the characters in the string are successfully written to the OLED display, the function returns the last character of the string (which should be a null character).
+ */
 char Display_Puts(OLED_t * oled ,char* str, FontDef_t* Font, Display_COLOR_t color) {
 	// Write characters
 	while (*str) {
@@ -216,18 +265,33 @@ char Display_Puts(OLED_t * oled ,char* str, FontDef_t* Font, Display_COLOR_t col
 }
 
 
-
+/*
+ * The function Display_Clear() is used to clear the contents of the OLED screen.
+ * It first calls the Display_Fill() function to fill the entire display buffer with black (0) color.
+ * Then it calls Display_UpdateScreen() to update the OLED screen with the new display buffer.
+ * This effectively clears the entire OLED screen and sets it to a blank black display.
+ */
 
 void Display_Clear (OLED_t * oled )
 {
 	Display_Fill (oled , 0);
 	Display_UpdateScreen(oled);
 }
+/*
+ * The function Display_ON() is used to turn on the OLED display.
+ * It does so by sending three commands to the OLED display.
+ * The first command is 0x8D, which sets the charge pump voltage to enable the OLED display.
+ * The second command is 0x14, which sets the charge pump to enable the OLED display.
+ * The third command is 0xAF, which sets the OLED display to turn on.
+ */
 void Display_ON(OLED_t * oled ) {
 	Display_WriteCommand(oled , 0x8D);
 	Display_WriteCommand(oled , 0x14);
 	Display_WriteCommand(oled , 0xAF);
 }
+/*
+ * this function  turns off the OLED by sending command 0x8D, 0x10 and 0xAE which will set the charge pump off and the display off.
+ */
 void Display_OFF(OLED_t * oled ) {
 	Display_WriteCommand(oled , 0x8D);
 	Display_WriteCommand(oled , 0x10);
@@ -244,7 +308,14 @@ void Display_OFF(OLED_t * oled ) {
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+/*
+ * This function is used to write multiple bytes of data to an I2C device at a specific address, using the specified data register.
+ * The OLED_t struct pointer is passed as the first argument, followed by the I2C device address, the data register address,
+ * a pointer to the data to be written, and the number of bytes to be written.
+ * The function uses the CR2 register of the I2C peripheral to configure the address, number of bytes, and read/write direction.
+ * It then sends a start condition and waits for the TXIS (transmit interrupt status) flag to be set before sending the data register address and the data to be written.
+ * The data is sent one byte at a time, and the function waits for the TXIS flag to be set before sending the next byte. Once all the data has been sent, the function ends.
+ */
 
 
 void Display_I2C_WriteMulti(OLED_t * oled,uint8_t address, uint8_t dataRegister, uint8_t *data , uint16_t numBytes)	//data is a pointer
@@ -276,7 +347,13 @@ void Display_I2C_WriteMulti(OLED_t * oled,uint8_t address, uint8_t dataRegister,
 
 }
 
-
+/*
+ * This function writes a single byte of data to a specified I2C address and register using the I2C peripheral specified in the OLED_t struct.
+ * The address, data register, and data to be written are passed as arguments to the function.
+ * The number of bytes to be written (in this case, 2 bytes, one for the register and one for the data) is also passed as an argument.
+ * The function starts the I2C communication and waits for the transmit buffer to be empty before sending the register and data.
+ * It then waits for the transmit buffer to be empty again before sending the data. The function will exit and return if a NACK is received during the transmission.
+ */
 void Display_I2C_Write(OLED_t * oled, uint8_t address, uint8_t dataRegister, uint8_t data , uint8_t numBytes)
 {
 
