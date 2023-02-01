@@ -94,6 +94,7 @@ void my_alarm1_callback()
 	//
 }
 
+int handle_user_input(const char * submenu_item , char pressed_key) ;
 
 
 int main()
@@ -186,6 +187,8 @@ int main()
 	gpio_set_pinState(GPIOA , LED_TAB[1]  , LOW) ;
 	gpio_set_pinState(GPIOA , LED_TAB[2]  , LOW) ;
 
+	rtc_time_t time_config;
+	rtc_date_t date_config ;
 
 	while(1)
 	{
@@ -314,7 +317,7 @@ int main()
 				{
 					static int menu_index = 0 ;
 					static int menu_index_prev  = 0 ;
-
+					static char * selected_sub_menu_item ;
 					case menu_nav_start:
 					{
 						Display_Clear(&lcd1) ;
@@ -322,7 +325,7 @@ int main()
 						Display_Clear(&lcd3) ;
 						Display_GotoXY(&lcd1 , 10,20);
 
-						Display_Puts(&lcd1 ,"time" ,& Font_11x18 , Display_COLOR_WHITE ) ;
+						Display_Puts(&lcd1 ,"Zeit" ,& Font_11x18 , Display_COLOR_WHITE ) ;
 
 						Display_GotoXY(&lcd2 , 10,20);
 
@@ -398,7 +401,7 @@ int main()
 					}
 					case menu_nav_submenu_start :
 					{
-
+						//executed once when entring  submenu
 						Display_GotoXY(&lcd1 , 10,20);
 
 						Display_Puts(&lcd1 ,(char*)MENU[menu_index] ,& Font_11x18 , Display_COLOR_WHITE ) ;
@@ -438,6 +441,12 @@ int main()
 							//transition
 							menu_nav_sub_state = menu_nav_start ; //reset substate
 						}
+						else if( key == '#')
+						{
+							//transition to configuration
+							menu_nav_sub_state = menu_nav_submenu_config ;
+							selected_sub_menu_item = (char*)SUB_MENU[menu_index][submenu_index] ;
+						}
 
 
 						//test boundry
@@ -457,7 +466,30 @@ int main()
 
 						break ;
 					}
-
+					case menu_nav_submenu_config :
+					{
+						//this state will handle user input
+						int ret = handle_user_input(selected_sub_menu_item , key) ;
+						//-1 back
+						// 0 nothink
+						//other int
+						if( ret == -1)
+						{
+							//
+							Display_Clear(&lcd3) ;
+							Display_UpdateScreen(&lcd3);
+							menu_nav_sub_state = menu_nav_submenu_update ;
+						}
+						else if( ret == 0)
+						{
+							//do nothink
+						}
+						else
+						{
+							//save config
+						}
+						break ;
+					}
 					case menu_nav_exit:
 					{
 
@@ -492,6 +524,180 @@ int main()
 	}
 }
 
+//// date config
+//void handle_year_input()  ;
+//void handle_day_input()   ;
+//void handle_month_input() ;
+//
+////time ,alarm config
+//handle_hour_input()  ;
+//handle_minute_input();
+//hanlde_second_input();
+
+int handle_2_digit_input(char key) ;
+//int handle_4_digit_input(char *key) ;
+
+//
+int handle_user_input(const char * submenu_item , char pressed_key)
+{
+	int ret = 0 ;
+
+	if(strncmp(submenu_item , "year config" ,11 ) == 0)
+	{
+		//handle_4_digit_input() ;
+	}
+	else
+	{
+		//handle_2_digit_input();
+		ret = handle_2_digit_input(pressed_key) ;
+	}
+
+	return ret ;
+}
+
+static int key_to_digit(char key)
+{
+	//assure key in['0'..'9']
+	return (key - 48) ;
+}
+
+typedef enum {
+	inp_state_one ,
+	inp_state_two ,
+	inp_state_three ,
+	inp_state_four  ,
+	inp_state_validate ,
+
+}input_state_t ;
+
+
+/**
+ * return 0 if the state machine still running , -1 is '*' is pressed ,the user input if '#" is pressed
+ */
+int handle_2_digit_input(char key)
+{
+	static input_state_t inp_state = inp_state_one ;
+	//char input_string[2] ;
+	//static int  input_str_index = 0 ;
+	static int  input = 0 ;
+
+	int ret = 0 ;
+
+	switch(inp_state)
+	{
+		case inp_state_one:
+		{
+			if( key != 0 && key != '#' && key != '*')
+			{
+				//input_string[input_str_index] = key ;
+				//input_str_index++ ;
+				inp_state = inp_state_two ;
+				Display_GotoXY(&lcd3 , 10 , 30 );
+				Display_Putc(&lcd3 ,key,& Font_7x10 , Display_COLOR_WHITE ) ;
+				Display_UpdateScreen(&lcd3);
+				input = key_to_digit(key) * 10 ;
+			}
+			else
+			{
+
+			}
+			break ;
+		}
+		case inp_state_two:
+		{
+			if( key != 0 && key != '#' && key != '*')
+			{
+				//input_string[input_str_index] = key ;
+				//input_str_index++ ;
+				inp_state = inp_state_validate ;
+				Display_GotoXY(&lcd3 , 20 , 30 );
+				Display_Putc(&lcd3 ,key,& Font_7x10 , Display_COLOR_WHITE ) ;
+
+				input = input + key_to_digit(key) ;
+
+				/*
+				//validation
+				Display_GotoXY(&lcd3 , 20 , 38 );
+				char vald[4] ;
+				sprintf(vald , "%d" , input) ;
+				Display_Puts(&lcd3 ,vald,& Font_7x10 , Display_COLOR_WHITE ) ;
+				*/
+
+				Display_UpdateScreen(&lcd3);
+			}
+			else
+			{
+
+			}
+			break ;
+		}
+		case inp_state_validate:
+		{
+			if( key == '#' )
+			{
+				//Confirm
+
+				ret = input ;
+			}
+			else if(key == '*')
+			{
+				//Cancel
+				ret = -1 ;
+			}
+			else if( key != 0)
+			{
+				//do the same think as state one
+				inp_state = inp_state_two ;
+				Display_GotoXY(&lcd3 , 10 , 30 );
+				Display_Putc(&lcd3 ,key,& Font_7x10 , Display_COLOR_WHITE ) ;
+				Display_UpdateScreen(&lcd3);
+				input = key_to_digit(key) * 10 ;
+			}
+			else
+			{
+
+			}
+			break ;
+		}
+		default :
+			break ;
+	}
+	return ret ;
+}
+
+int handle_4_digit_input()
+{
+	static input_state_t inp_state = inp_state_one ;
+
+		int ret = 0 ;
+
+		switch(inp_state)
+		{
+			case inp_state_one:
+			{
+				break ;
+			}
+			case inp_state_two:
+			{
+				break ;
+			}
+			case inp_state_three:
+			{
+				break ;
+			}
+			case inp_state_four:
+			{
+				break ;
+			}
+			case inp_state_validate:
+			{
+				break ;
+			}
+			default :
+				break ;
+		}
+		return ret ;
+}
 
 /** width 7* height 10
 		 * 0x3800, 0x4400, 0x4000, 0x3000, 0x0800, 0x0400, 0x4400, 0x3800, 0x0000, 0x0000,  // S

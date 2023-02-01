@@ -47,6 +47,7 @@ typedef enum menu_nav_sub_state{
 	menu_nav_update ,
 	menu_nav_submenu_start ,
 	menu_nav_submenu_update ,
+	menu_nav_submenu_config ,
 	menu_nav_exit ,
 }menu_nav_sub_state_t;
 
