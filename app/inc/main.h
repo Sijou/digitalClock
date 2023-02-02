@@ -51,6 +51,13 @@ typedef enum menu_nav_sub_state{
 	menu_nav_exit ,
 }menu_nav_sub_state_t;
 
+
+typedef enum alarm_state {
+	alarm_state_active ,
+	alarm_state_desactive ,
+	alarm_exit  ,
+}alarm_state_t;
+
 void systick_enable() ;
 uint32_t get_mtick();
 void delay_ms(uint32_t ms);

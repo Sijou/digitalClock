@@ -70,15 +70,17 @@ const char * MENU[] = { "time" , "date" , "Parameter"} ;
 
 const char * SUB_MENU_TIME[] = {"hour config","minute config","second config"};
 const char * SUB_MENU_DATE[] = {"day config","month config","year config"};
-const char * SUB_MENU_PARM[] = {"alarm1 config","alarm2 config","buzze config" , "night mode"};
+const char * SUB_MENU_PARM[] = {"ALARM hour" , "ALARM min" ,"ALARM second" ,"NM hour" , "NM min"  } ;//{"alarm1 config","alarm2 config","buzze config" , "night mode"};
 
-const int submenu_item_lenght[] = {3,3,4} ;
+const int submenu_item_lenght[] = {3,3,5} ;
 const char ** SUB_MENU[] =  {SUB_MENU_TIME , SUB_MENU_DATE , SUB_MENU_PARM } ;
 
 GPIO_TypeDef *  LED_PORT = GPIOA ;
 
-int LED_TAB[3] = { 6 , 11 , 12 } ;
+int LED_TAB[ 3] = { 6 ,11 , 12 } ;
 
+volatile bool handle_alarm = false ;
+uint32_t g_alarm_start_time = 0 ;
 /*
  * The function my_alarm1_callback is a callback function that is called when an alarm event occurs.
  * In this specific implementation, it sets the state of GPIO pin A5 to high.
@@ -90,12 +92,22 @@ void my_alarm1_callback()
 	//
 
 	gpio_set_pinState(GPIOA , 5 , HIGH) ;
+	rtc_alarm_clear() ;
+	g_alarm_start_time = get_mtick() ;
+	handle_alarm = true ;
 
 	//
 }
 
 int handle_user_input(const char * submenu_item , char pressed_key) ;
 
+void save_config(const char * param , int val) ;
+
+bool activate_naght_mode = false ;
+
+uint32_t night_mode_timer = 0 ;
+
+uint32_t night_mode_start_time = 0 ;
 
 int main()
 {
@@ -113,6 +125,7 @@ int main()
 	gpio_clock_enable(GPIOA) ;
 
 	gpio_config_pin(GPIOA,5,GPIO_OUT,GPIO_SPEED_LOW,GPIO_NO_PULL ,GPIO_PUSHPULL);
+	gpio_config_pin(GPIOA,7,GPIO_OUT,GPIO_SPEED_LOW,GPIO_NO_PULL ,GPIO_PUSHPULL);
 
 	gpio_set_pinState(GPIOA , 5 , LOW) ;
 
@@ -120,9 +133,6 @@ int main()
 	gpio_config_pin(LED_PORT, LED_TAB[0] ,GPIO_OUT,GPIO_SPEED_LOW,GPIO_NO_PULL ,GPIO_PUSHPULL);
 	gpio_config_pin(LED_PORT, LED_TAB[1] ,GPIO_OUT,GPIO_SPEED_LOW,GPIO_NO_PULL ,GPIO_PUSHPULL);
 	gpio_config_pin(LED_PORT, LED_TAB[2] ,GPIO_OUT,GPIO_SPEED_LOW,GPIO_NO_PULL ,GPIO_PUSHPULL);
-
-
-
 
 	lcd1.dev = I2C1 ;
 	lcd2.dev = I2C2 ;
@@ -132,8 +142,8 @@ int main()
 	I2C_Init(I2C2) ;
 	I2C_Init(I2C3) ;
 
-//	 d.day  = 31 ;
-//	 d.month = 1 ;
+//	 d.day  = 1 ;
+//	 d.month = 2 ;
 //	 d.year = 23 ;
 //
 //	 t.hr = 19 ;
@@ -150,8 +160,9 @@ int main()
 	 tm.hr = 19;
 	 tm.min = 15 ;
 	 tm.sec = 00 ;
-	 rtc_set_alarm(&tm) ;
+	 //rtc_set_alarm(&tm) ;
 
+	 alarm_state_t alarm_state = alarm_state_active ; ;
 	 rtc_set_alarm_callback(&my_alarm1_callback) ;
 
 	 Display_Init(&lcd3);	//Configure Display
@@ -187,8 +198,7 @@ int main()
 	gpio_set_pinState(GPIOA , LED_TAB[1]  , LOW) ;
 	gpio_set_pinState(GPIOA , LED_TAB[2]  , LOW) ;
 
-	rtc_time_t time_config;
-	rtc_date_t date_config ;
+	gpio_set_pinState(GPIOA , 5 , LOW) ;  //alarm pin
 
 	while(1)
 	{
@@ -211,6 +221,10 @@ int main()
 
 			case state_idle:
 			{
+				gpio_set_pinState(GPIOA , LED_TAB[0]  , LOW ) ;
+				gpio_set_pinState(GPIOA , LED_TAB[1]  , LOW ) ;
+				gpio_set_pinState(GPIOA , LED_TAB[2]  , LOW ) ;
+
 				static uint32_t sub_state_timer = 0 ;
 
 				switch(idel_sub_state)
@@ -374,6 +388,13 @@ int main()
 							//back
 							menu_nav_sub_state = menu_nav_start ; //reset substate
 							sys_state = state_idle ;
+
+							/*
+							 * turn off LEDs
+							 */
+							gpio_set_pinState(GPIOA , LED_TAB[0]  , LOW ) ;
+							gpio_set_pinState(GPIOA , LED_TAB[1]  , LOW ) ;
+							gpio_set_pinState(GPIOA , LED_TAB[2]  , LOW ) ;
 						}
 						else{
 
@@ -408,7 +429,7 @@ int main()
 
 						for(int i = 0 ; i < submenu_item_lenght[menu_index] ; i++ )
 						{
-							Display_GotoXY(&lcd2 , 10 , 20 + (9 * i) );
+							Display_GotoXY(&lcd2 , 10 , 5 + (9 * i) );
 							Display_Puts(&lcd2 ,(char*)SUB_MENU[menu_index][i] ,& Font_7x10 , Display_COLOR_WHITE ) ;
 						}
 
@@ -444,6 +465,7 @@ int main()
 						else if( key == '#')
 						{
 							//transition to configuration
+							Display_Clear(&lcd3) ;
 							menu_nav_sub_state = menu_nav_submenu_config ;
 							selected_sub_menu_item = (char*)SUB_MENU[menu_index][submenu_index] ;
 						}
@@ -471,7 +493,7 @@ int main()
 						//this state will handle user input
 						int ret = handle_user_input(selected_sub_menu_item , key) ;
 						//-1 back
-						// 0 nothink
+						// -2 nothink
 						//other int
 						if( ret == -1)
 						{
@@ -480,13 +502,15 @@ int main()
 							Display_UpdateScreen(&lcd3);
 							menu_nav_sub_state = menu_nav_submenu_update ;
 						}
-						else if( ret == 0)
+						else if( ret == -2)
 						{
 							//do nothink
 						}
 						else
 						{
 							//save config
+							save_config(selected_sub_menu_item , ret) ;
+							menu_nav_sub_state = menu_nav_submenu_update ;
 						}
 						break ;
 					}
@@ -521,18 +545,89 @@ int main()
 		}
 
 
+		if(handle_alarm == true)
+		{
+
+			if(key == '5')
+			{
+				alarm_state = alarm_exit ;
+				key = 0;
+			}
+
+			static int alarm_counter = 0;
+			static uint32_t state_low_timer = 0 ;
+			activate_naght_mode = true ;
+			night_mode_start_time = get_mtick() ;
+			gpio_set_pinState(GPIOA , 7,HIGH) ;
+
+			switch(alarm_state)
+			{
+
+				case alarm_state_active :
+				{
+					//pin is high and buzzer is active
+					gpio_set_pinState(GPIOA , 5,HIGH) ;
+
+					if( get_mtick() - g_alarm_start_time >= 30 * 1000) // 30 second on
+					{
+						alarm_state = alarm_state_desactive ;
+						alarm_counter++ ;
+						state_low_timer = get_mtick() ;
+					}
+					else{
+
+					}
+
+					break ;
+				}
+				case alarm_state_desactive :
+				{
+					//pin is high and buzzer is desactive
+					gpio_set_pinState(GPIOA , 5,LOW) ;
+					if( get_mtick()  - state_low_timer >= 1*60*1000)  //4 min passed
+					{
+						alarm_state = alarm_state_active ;
+						g_alarm_start_time =  get_mtick() ;
+					}
+					else if(alarm_counter >= 5)
+					{
+						//Exit alarm after 5 notif
+						alarm_state = alarm_exit ;
+					}
+					else{
+
+					}
+
+					break ;
+				}
+				case alarm_exit :
+				{
+					handle_alarm = false ;
+					alarm_state = alarm_state_active ;
+					alarm_counter = 0 ;
+					//alarm
+					gpio_set_pinState(GPIOA , 5,LOW) ;
+					break ;
+				}
+				default : break;
+			}
+
+		}
+
+		if(activate_naght_mode == true )
+		{
+			if( get_mtick() - night_mode_start_time >= night_mode_timer)
+			{
+				activate_naght_mode = false ;
+				gpio_set_pinState(GPIOA , 7,LOW) ;
+			}
+		}
+
 	}
 }
 
-//// date config
-//void handle_year_input()  ;
-//void handle_day_input()   ;
-//void handle_month_input() ;
-//
-////time ,alarm config
-//handle_hour_input()  ;
-//handle_minute_input();
-//hanlde_second_input();
+
+
 
 int handle_2_digit_input(char key) ;
 //int handle_4_digit_input(char *key) ;
@@ -542,15 +637,7 @@ int handle_user_input(const char * submenu_item , char pressed_key)
 {
 	int ret = 0 ;
 
-	if(strncmp(submenu_item , "year config" ,11 ) == 0)
-	{
-		//handle_4_digit_input() ;
-	}
-	else
-	{
-		//handle_2_digit_input();
-		ret = handle_2_digit_input(pressed_key) ;
-	}
+	ret = handle_2_digit_input(pressed_key) ;
 
 	return ret ;
 }
@@ -581,7 +668,7 @@ int handle_2_digit_input(char key)
 	//static int  input_str_index = 0 ;
 	static int  input = 0 ;
 
-	int ret = 0 ;
+	int ret = -2  ;
 
 	switch(inp_state)
 	{
@@ -697,6 +784,94 @@ int handle_4_digit_input()
 				break ;
 		}
 		return ret ;
+}
+
+
+/**
+ *
+const char * SUB_MENU_TIME[] = {"hour config","minute config","second config"};
+const char * SUB_MENU_DATE[] = {"day config","month config","year config"};
+const char * SUB_MENU_PARM[] = {"alarm1 config","alarm2 config","buzze config" , "night mode"};
+ */
+void save_config(const char * param , int val)
+{
+	if(strncmp( param , "hour config" , strlen(param)) == 0)
+	{
+		rtc_time_t my_time ;
+		rtc_get_time(&my_time) ;
+		my_time.hr = val ;
+		rtc_set_time(&my_time) ;
+	}
+	else if(strncmp( param , "minute config" , strlen(param)) == 0)
+	{
+		rtc_time_t my_time ;
+		rtc_get_time(&my_time) ;
+		my_time.min = val ;
+		rtc_set_time(&my_time) ;
+	}
+	else if(strncmp( param , "second config" , strlen(param)) == 0)
+	{
+		rtc_time_t my_time ;
+		rtc_get_time(&my_time) ;
+		my_time.sec = val ;
+		rtc_set_time(&my_time) ;
+	}
+	else if(strncmp( param , "day config" , strlen(param)) == 0)
+	{
+		rtc_date_t my_date ;
+		rtc_get_date(&my_date) ;
+		my_date.day = val ;
+		rtc_set_date(&my_date) ;
+
+	}
+	else if(strncmp( param , "month config" , strlen(param)) == 0)
+	{
+		rtc_date_t my_date ;
+		rtc_get_date(&my_date) ;
+		my_date.month = val ;
+		rtc_set_date(&my_date) ;
+	}
+	else if(strncmp( param , "year config" , strlen(param)) == 0)
+	{
+		rtc_date_t my_date ;
+		rtc_get_date(&my_date) ;
+		my_date.year = val ;
+		rtc_set_date(&my_date) ;
+	}
+	if(strncmp( param , "ALARM hour" , strlen(param)) == 0)
+	{
+		rtc_time_t my_time ;
+		rtc_get_alarm(&my_time) ;
+		my_time.hr = val ;
+		rtc_set_alarm(&my_time) ;
+	}
+	else if(strncmp( param , "ALARM min" , strlen(param)) == 0)
+	{
+		rtc_time_t my_time ;
+		rtc_get_alarm(&my_time) ;
+		my_time.min = val ;
+		rtc_set_alarm(&my_time) ;
+	}
+	else if(strncmp( param , "ALARM second" , strlen(param)) == 0)
+	{
+		rtc_time_t my_time ;
+		rtc_get_alarm(&my_time) ;
+		my_time.sec = val ;
+		rtc_set_alarm(&my_time) ;
+	}
+	else if(strncmp( param ,"NM hour" , 7) == 0)
+	{
+		night_mode_timer = val * 60 *60 ;
+	}
+	else if(strncmp( param ,"NM min" , 6) == 0)
+	{
+		night_mode_timer += val *60 ;
+		night_mode_timer *= 1000 ;
+	}
+	else
+	{
+
+	}
 }
 
 /** width 7* height 10

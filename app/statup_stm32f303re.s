@@ -73,6 +73,7 @@ CopyDataInit:
 	adds	r1, r1, #4
 
 LoopCopyDataInit:
+
 	ldr	r0, =_sdata
 	ldr	r3, =_edata
 	adds	r2, r0, r1

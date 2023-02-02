@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "rtc.h"
 #include "stdbool.h"
+#include "stdio.h"
 
 I2C_TypeDef * rtc_i2c ;
 uint8_t tm;
@@ -368,9 +369,9 @@ void rtc_set_alarm_callback(callback_t  callback)
  */
 void rtc_update(void)
 {
-	if(rtc_is_alarm_set( ) == true)
+	if(rtc_is_alarm_set( ) == true && alarm1_callback != NULL)
 	{
-		alarm1_callback() ;
+		alarm1_callback() ;//NULL
 	}
 	else
 	{
